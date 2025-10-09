@@ -64,8 +64,17 @@ RUN cd /usr/local/lib/node_modules/n8n && \
 
 RUN apk add --no-cache build-base cairo-dev pango-dev jpeg-dev giflib-dev pixman-dev python3
 
-RUN cd /usr/local/lib/node_modules/n8n/node_modules/pdfjs-dist && npm install @napi-rs/canvas
+# ===================== CORREÇÃO INICIADA AQUI =====================
+# Instala pdfjs-dist dentro do diretório do n8n:
+RUN cd /usr/local/lib/node_modules/n8n && npm install pdfjs-dist
 
+# Apenas tenta instalar @napi-rs/canvas caso o pdfjs-dist esteja presente:
+RUN if [ -d "/usr/local/lib/node_modules/n8n/node_modules/pdfjs-dist" ]; then \
+      cd /usr/local/lib/node_modules/n8n/node_modules/pdfjs-dist && npm install @napi-rs/canvas; \
+    else \
+      echo "pdfjs-dist não encontrado, pulando instalação do @napi-rs/canvas."; \
+    fi
+# ===================== CORREÇÃO FINALIZADA =======================
 EXPOSE 5678/tcp
 USER node
 ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
